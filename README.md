@@ -18,14 +18,23 @@ pip install -r requirements.txt
 python 1_Data_Cleaning/setup_data.py
 ```
 
-By default this downloads the small `All_Beauty` Amazon category (reviews + item
-metadata) and the IMDB CSV. Re-running skips files that already exist.
+For Amazon, this opens an interactive menu that:
 
-Other options:
+1. lists all 34 categories with the download size of the reviews and the item
+   metadata files, and marks the ones you already have with `[have]`;
+2. asks which categories you want (`1,3,5-7`, names like `All_Beauty Software`,
+   or `all`) and which parts (reviews, metadata or both);
+3. shows what will be downloaded vs. skipped and asks you to confirm the total size.
+
+It then downloads the IMDB CSV. Re-running skips files that already exist.
+
+To see the table without downloading anything:
 
 ```bash
 python 1_Data_Cleaning/download_amazon_reviews.py --list
 ```
+
+To skip the menu, pass categories directly:
 
 ```bash
 python 1_Data_Cleaning/setup_data.py --amazon-categories All_Beauty Software Video_Games
@@ -36,7 +45,9 @@ python 1_Data_Cleaning/setup_data.py --skip-imdb --no-amazon-meta
 ```
 
 Some Amazon categories (e.g. `Books`, `Clothing_Shoes_and_Jewelry`,
-`Home_and_Kitchen`) are several GB each — `--amazon-categories all` is very large.
+`Home_and_Kitchen`) are several GB each — `all` is very large. When run without a
+terminal (e.g. from another script) and no categories are given, only
+`All_Beauty` is downloaded.
 
 ### Kaggle credentials
 
