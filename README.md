@@ -10,12 +10,27 @@ which is listed in `.gitignore`.
 | Amazon Reviews 2023 | https://amazon-reviews-2023.github.io/ | `0_Data/amazon_reviews_2023/{reviews,meta}/*.jsonl.gz` |
 | IMDB 50K movie reviews | https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews | `0_Data/imdb_50k/IMDB Dataset.csv` |
 
-```bash
-pip install -r requirements.txt
+### Requirements
+
+R 4.1 or newer, plus two packages:
+
+```r
+install.packages(c("curl", "jsonlite"))
 ```
 
+### Running the setup
+
+From a terminal, in the repo root:
+
 ```bash
-python 1_Data_Cleaning/setup_data.py
+Rscript 1_Data_Cleaning/setup_data.R
+```
+
+Or from R / RStudio (with the repo as working directory):
+
+```r
+source("1_Data_Cleaning/setup_data.R")
+setup_data()
 ```
 
 For Amazon, this opens an interactive menu that:
@@ -31,18 +46,20 @@ It then downloads the IMDB CSV. Re-running skips files that already exist.
 To see the table without downloading anything:
 
 ```bash
-python 1_Data_Cleaning/download_amazon_reviews.py --list
+Rscript 1_Data_Cleaning/download_amazon_reviews.R --list
 ```
 
 To skip the menu, pass categories directly:
 
 ```bash
-python 1_Data_Cleaning/setup_data.py --amazon-categories All_Beauty Software Video_Games
+Rscript 1_Data_Cleaning/setup_data.R --amazon-categories All_Beauty Software Video_Games
 ```
 
 ```bash
-python 1_Data_Cleaning/setup_data.py --skip-imdb --no-amazon-meta
+Rscript 1_Data_Cleaning/setup_data.R --skip-imdb --no-amazon-meta
 ```
+
+or in R: `setup_data(amazon_categories = c("Software"), amazon_meta = FALSE, skip_imdb = TRUE)`.
 
 Some Amazon categories (e.g. `Books`, `Clothing_Shoes_and_Jewelry`,
 `Home_and_Kitchen`) are several GB each — `all` is very large. When run without a
@@ -51,30 +68,31 @@ terminal (e.g. from another script) and no categories are given, only
 
 ### Kaggle credentials
 
-The IMDB dataset is fetched with `kagglehub`. If Kaggle asks you to log in, run
-`python -c "import kagglehub; kagglehub.login()"` or put your `kaggle.json`
-(Kaggle > Settings > API > Create New Token) in `~/.kaggle/`.
+The IMDB dataset comes from the Kaggle API. If the download is refused, create
+an API token (Kaggle > Settings > API) and either put `kaggle.json` in
+`~/.kaggle/`, or set `KAGGLE_USERNAME` and `KAGGLE_KEY` (e.g. in `~/.Renviron`).
+You can also download the zip from the dataset page by hand and put
+`IMDB Dataset.csv` in `0_Data/imdb_50k/`.
 
 ### Loading the data
 
-```python
-# from inside 1_Data_Cleaning/
-from load_data import load_amazon_reviews, load_amazon_meta, load_imdb
+```r
+source("1_Data_Cleaning/load_data.R")
 
-reviews = load_amazon_reviews("All_Beauty", nrows=10_000)
-meta = load_amazon_meta("All_Beauty")
-imdb = load_imdb()
+reviews <- load_amazon_reviews("All_Beauty", n_max = 10000)
+meta    <- load_amazon_meta("All_Beauty")   # nested fields become list-columns
+imdb    <- load_imdb()
 ```
 
 ## Layout
 
 ```
-0_Data/             # local datasets (git-ignored, created by setup script)
+0_Data/             # local datasets (git-ignored, created by the setup script)
 1_Data_Cleaning/
-  config.py                   # paths, URLs, category list
-  setup_data.py               # entry point: downloads everything
-  download_amazon_reviews.py  # Amazon Reviews 2023 downloader
-  download_imdb.py            # IMDB 50K downloader (Kaggle)
-  download_utils.py           # streaming download helper
-  load_data.py                # pandas loaders
+  setup_data.R                # entry point: downloads everything
+  download_amazon_reviews.R   # Amazon Reviews 2023 downloader + interactive menu
+  download_imdb.R             # IMDB 50K downloader (Kaggle)
+  load_data.R                 # loaders into data frames
+  config.R                    # paths, URLs, category list
+  utils.R                     # download, size lookup, prompt and argument helpers
 ```
