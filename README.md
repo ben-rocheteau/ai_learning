@@ -89,6 +89,23 @@ meta    <- load_amazon_meta("All_Beauty")   # nested fields become list-columns
 imdb    <- load_imdb()
 ```
 
+## Documentation
+
+Detailed docs (code structure, dependencies, one page per script and function) are in
+[`wiki/`](wiki/Home.md), formatted for the GitHub wiki. To publish or update the wiki:
+
+1. Once only: on GitHub, open the repo's **Wiki** tab and create any first page
+   (this creates the wiki).
+2. Copy the pages over and push:
+
+```bash
+git clone https://github.com/ben-rocheteau/ai_learning.wiki.git ../ai_learning.wiki
+```
+
+```bash
+cp wiki/*.md ../ai_learning.wiki/ && cd ../ai_learning.wiki && git add -A && git commit -m "Update wiki" && git push
+```
+
 ## Layout
 
 ```
@@ -102,4 +119,5 @@ ai_learning.Rproj               # RStudio project (sets working directory to the
     download_imdb.R             # IMDB 50K downloader (Kaggle)
     load_data.R                 # loaders into data frames
     utils.R                     # download, size lookup, prompt and argument helpers
+wiki/                           # GitHub wiki pages (see Documentation)
 ```
