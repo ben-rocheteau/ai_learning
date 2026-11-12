@@ -1,19 +1,13 @@
-# Shared paths and dataset settings for the data setup scripts.
-# Sourced by the other scripts; not meant to be run on its own.
+# Shared paths and dataset settings.
+# Loaded with source() by 1_Data_Cleaning/setup_data.R (or your own scripts).
 
-# Find the repo root: the first folder (going up) that contains 1_Data_Cleaning.
-find_repo_root <- function(start = getwd()) {
-  dir <- normalizePath(start, mustWork = FALSE)
-  repeat {
-    if (dir.exists(file.path(dir, "1_Data_Cleaning"))) return(dir)
-    parent <- dirname(dir)
-    if (parent == dir) stop("Could not find the repo root (a folder containing 1_Data_Cleaning). ",
-                            "Run from inside the repo.")
-    dir <- parent
-  }
-}
-
-REPO_ROOT <- find_repo_root(if (exists("SCRIPT_DIR")) SCRIPT_DIR else getwd())
+# This file lives in <repo>/1_Data_Cleaning/1_Functions/, so the repo root is two
+# folders up. source() records the file being read as `ofile`; take the innermost.
+REPO_ROOT <- local({
+  files <- Filter(Negate(is.null), lapply(rev(sys.frames()), function(f) f$ofile))
+  if (!length(files)) stop("config.R must be loaded with source(), not run line by line.", call. = FALSE)
+  normalizePath(file.path(dirname(files[[1]]), "..", ".."), winslash = "/")
+})
 DATA_DIR <- Sys.getenv("AI_LEARNING_DATA_DIR", file.path(REPO_ROOT, "0_Data"))
 
 AMAZON_DIR <- file.path(DATA_DIR, "amazon_reviews_2023")
@@ -41,7 +35,7 @@ AMAZON_CATEGORIES <- c(
   "Tools_and_Home_Improvement", "Toys_and_Games", "Video_Games", "Unknown"
 )
 
-# Small category used when no one can be asked (e.g. run from another script).
+# Small category used when no one can be asked (e.g. run by another program).
 # Some categories (Books, Clothing, Home...) are many GB.
 AMAZON_DEFAULT_CATEGORIES <- c("All_Beauty")
 
