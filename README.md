@@ -20,18 +20,19 @@ install.packages(c("curl", "jsonlite"))
 
 ### Running the setup
 
-From a terminal, in the repo root:
+In RStudio: open `ai_learning.Rproj` (this sets the working directory to the
+repo), open `1_Data_Cleaning/setup_data.R` and click **Source**. Running it line
+by line also works.
+
+From a terminal (from any folder):
 
 ```bash
 Rscript 1_Data_Cleaning/setup_data.R
 ```
 
-Or from R / RStudio (with the repo as working directory):
-
-```r
-source("1_Data_Cleaning/setup_data.R")
-setup_data()
-```
+The script finds the repo from its own location, so the working directory
+doesn't matter. If it can't, it stops and tells you to open `ai_learning.Rproj`
+or `setwd()` to the repo.
 
 For Amazon, this opens an interactive menu that:
 
@@ -46,7 +47,7 @@ It then downloads the IMDB CSV. Re-running skips files that already exist.
 To see the table without downloading anything:
 
 ```bash
-Rscript 1_Data_Cleaning/download_amazon_reviews.R --list
+Rscript 1_Data_Cleaning/setup_data.R --list-amazon
 ```
 
 To skip the menu, pass categories directly:
@@ -59,11 +60,12 @@ Rscript 1_Data_Cleaning/setup_data.R --amazon-categories All_Beauty Software Vid
 Rscript 1_Data_Cleaning/setup_data.R --skip-imdb --no-amazon-meta
 ```
 
-or in R: `setup_data(amazon_categories = c("Software"), amazon_meta = FALSE, skip_imdb = TRUE)`.
+or, after sourcing the script once in R:
+`setup_data(amazon_categories = c("Software"), amazon_meta = FALSE, skip_imdb = TRUE)`.
 
 Some Amazon categories (e.g. `Books`, `Clothing_Shoes_and_Jewelry`,
 `Home_and_Kitchen`) are several GB each — `all` is very large. When run without a
-terminal (e.g. from another script) and no categories are given, only
+terminal (e.g. by another program) and no categories are given, only
 `All_Beauty` is downloaded.
 
 ### Kaggle credentials
@@ -76,8 +78,11 @@ You can also download the zip from the dataset page by hand and put
 
 ### Loading the data
 
+All helper functions live in `1_Data_Cleaning/1_Functions/`. To use them in your
+own scripts (working directory = repo root, e.g. with `ai_learning.Rproj` open):
+
 ```r
-source("1_Data_Cleaning/load_data.R")
+for (f in list.files("1_Data_Cleaning/1_Functions", pattern = "\\.R$", full.names = TRUE)) source(f)
 
 reviews <- load_amazon_reviews("All_Beauty", n_max = 10000)
 meta    <- load_amazon_meta("All_Beauty")   # nested fields become list-columns
@@ -87,12 +92,14 @@ imdb    <- load_imdb()
 ## Layout
 
 ```
-0_Data/             # local datasets (git-ignored, created by the setup script)
+ai_learning.Rproj               # RStudio project (sets working directory to the repo)
+0_Data/                         # local datasets (git-ignored, created by setup_data.R)
 1_Data_Cleaning/
-  setup_data.R                # entry point: downloads everything
-  download_amazon_reviews.R   # Amazon Reviews 2023 downloader + interactive menu
-  download_imdb.R             # IMDB 50K downloader (Kaggle)
-  load_data.R                 # loaders into data frames
-  config.R                    # paths, URLs, category list
-  utils.R                     # download, size lookup, prompt and argument helpers
+  setup_data.R                  # entry point: downloads everything
+  1_Functions/                  # helper functions, loaded by setup_data.R
+    config.R                    # paths, URLs, category list
+    download_amazon_reviews.R   # Amazon Reviews 2023 downloader + interactive menu
+    download_imdb.R             # IMDB 50K downloader (Kaggle)
+    load_data.R                 # loaders into data frames
+    utils.R                     # download, size lookup, prompt and argument helpers
 ```

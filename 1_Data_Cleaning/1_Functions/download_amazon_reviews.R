@@ -1,34 +1,13 @@
-# Download Amazon Reviews 2023 (McAuley Lab) into 0_Data/amazon_reviews_2023/.
+# Amazon Reviews 2023 (McAuley Lab): download functions and interactive menu.
 #
-# Files are kept as gzipped JSON Lines (one JSON object per line):
+# Files go to 0_Data/amazon_reviews_2023/ as gzipped JSON Lines:
 #   reviews/<Category>.jsonl.gz       user reviews
 #   meta/meta_<Category>.jsonl.gz     item metadata (title, price, ...)
 #
-# With no categories given, an interactive menu shows which files you already
-# have and how big each download is.
-#
-# From a terminal (run from the repo root):
-#   Rscript 1_Data_Cleaning/download_amazon_reviews.R                    # menu
-#   Rscript 1_Data_Cleaning/download_amazon_reviews.R -c Software Video_Games
-#   Rscript 1_Data_Cleaning/download_amazon_reviews.R -c All_Beauty --no-meta
-#   Rscript 1_Data_Cleaning/download_amazon_reviews.R --list             # table only
-#
-# From R / RStudio:
-#   source("1_Data_Cleaning/download_amazon_reviews.R")
-#   download_amazon_interactive()
-#   download_amazon(c("Software", "Video_Games"), parts = "reviews")
-
-if (!exists("SCRIPT_DIR")) {
-  SCRIPT_DIR <- local({
-    f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
-    if (!length(f)) f <- tryCatch(sys.frame(1)$ofile, error = function(e) NULL)
-    if (length(f)) dirname(normalizePath(f[1]))
-    else if (dir.exists("1_Data_Cleaning")) normalizePath("1_Data_Cleaning")
-    else getwd()
-  })
-}
-source(file.path(SCRIPT_DIR, "config.R"))
-source(file.path(SCRIPT_DIR, "utils.R"))
+# Main functions:
+#   download_amazon_interactive()                        menu with sizes + what you have
+#   download_amazon(c("Software"), parts = "reviews")    no prompts
+#   print_status_table(amazon_status())                  table only
 
 # ---------------------------------------------------------------------------
 # Download
@@ -173,32 +152,4 @@ download_amazon_interactive <- function(overwrite = FALSE) {
   selection <- amazon_select(overwrite = overwrite)
   if (is.null(selection)) return(TRUE)
   download_amazon(selection$categories, selection$parts, overwrite = overwrite)
-}
-
-# ---------------------------------------------------------------------------
-# Command line
-# ---------------------------------------------------------------------------
-
-amazon_main <- function(argv = commandArgs(trailingOnly = TRUE)) {
-  args <- parse_args(argv, aliases = c(c = "categories", h = "help"))
-  if (flag(args, "help")) {
-    cat("Usage: Rscript download_amazon_reviews.R [-c CATEGORY ... | -c all] [--no-meta] [--overwrite] [--list]\n",
-        "With no -c, shows an interactive menu (or downloads ",
-        paste(AMAZON_DEFAULT_CATEGORIES, collapse = ", "), " if there is no terminal).\n", sep = "")
-    return(invisible(TRUE))
-  }
-  if (flag(args, "list")) {
-    print_status_table(amazon_status())
-    return(invisible(TRUE))
-  }
-  overwrite <- flag(args, "overwrite")
-  cats <- category_arg(args$categories, AMAZON_CATEGORIES)
-  if (is.null(cats) && can_prompt()) return(download_amazon_interactive(overwrite))
-  if (is.null(cats)) cats <- AMAZON_DEFAULT_CATEGORIES
-  parts <- if (flag(args, "no-meta")) "reviews" else AMAZON_PARTS
-  download_amazon(cats, parts, overwrite = overwrite)
-}
-
-if (sys.nframe() == 0L) {
-  quit(status = if (isTRUE(amazon_main())) 0 else 1)
 }

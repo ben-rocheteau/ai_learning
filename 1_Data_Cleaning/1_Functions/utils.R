@@ -2,6 +2,8 @@
 
 REQUIRED_PACKAGES <- c("curl", "jsonlite")
 
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 check_packages <- function(pkgs = REQUIRED_PACKAGES) {
   missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) {

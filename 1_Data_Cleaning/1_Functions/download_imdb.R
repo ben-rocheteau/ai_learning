@@ -10,20 +10,7 @@
 # If all else fails, download the zip manually from the dataset page and put
 # "IMDB Dataset.csv" in 0_Data/imdb_50k/.
 #
-# From a terminal:   Rscript 1_Data_Cleaning/download_imdb.R [--overwrite]
-# From R / RStudio:  source("1_Data_Cleaning/download_imdb.R"); download_imdb()
-
-if (!exists("SCRIPT_DIR")) {
-  SCRIPT_DIR <- local({
-    f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
-    if (!length(f)) f <- tryCatch(sys.frame(1)$ofile, error = function(e) NULL)
-    if (length(f)) dirname(normalizePath(f[1]))
-    else if (dir.exists("1_Data_Cleaning")) normalizePath("1_Data_Cleaning")
-    else getwd()
-  })
-}
-source(file.path(SCRIPT_DIR, "config.R"))
-source(file.path(SCRIPT_DIR, "utils.R"))
+# Main function: download_imdb(overwrite = FALSE)
 
 # curl handle carrying Kaggle credentials, if any are configured.
 kaggle_handle <- function() {
@@ -49,8 +36,6 @@ kaggle_handle <- function() {
   }
   h
 }
-
-`%||%` <- function(a, b) if (is.null(a)) b else a
 
 # Returns TRUE on success.
 download_imdb <- function(overwrite = FALSE) {
@@ -80,9 +65,4 @@ download_imdb <- function(overwrite = FALSE) {
   }
   message("  [ok]   ", dest)
   TRUE
-}
-
-if (sys.nframe() == 0L) {
-  args <- parse_args()
-  quit(status = if (download_imdb(overwrite = flag(args, "overwrite"))) 0 else 1)
 }
