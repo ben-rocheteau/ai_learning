@@ -89,6 +89,58 @@ meta    <- load_amazon_meta("All_Beauty")   # nested fields become list-columns
 imdb    <- load_imdb()
 ```
 
+## AI prompter (`2_AIPrompter/`)
+
+Sends your data to an LLM (Claude, ChatGPT or Gemini) in a fixed conversation and
+saves every reply:
+
+1. a **priming** message (once);
+2. for each row: **prompt 1 + text** → response 1, then **prompt 2 + recommendation** → response 2.
+
+Open `2_AIPrompter/run_prompter.R`, set the model, prompts and data, and Source it.
+It starts with a free offline `mock` model so you can try it safely.
+
+API keys go in `~/.Renviron` (never in the repo), then restart R:
+
+```
+ANTHROPIC_API_KEY=...
+OPENAI_API_KEY=...
+GEMINI_API_KEY=...
+```
+
+```r
+provider <- llm_provider("claude")          # or "chatgpt", "gemini", "mock"; model = "..." to override
+prompts  <- prompter_prompts(priming  = "You will read product reviews...",
+                             prompt_1 = "Summarise this review:",
+                             prompt_2 = "The recommendation was: {recommendation}. Does it match?")
+
+results <- run_prompter(my_data, prompts, provider,
+                        text_col = "review", recommendation_col = "recommend",
+                        output_file = "0_Data/ai_prompter/my_run.csv")
+
+one <- prompt_one("Great value.", "Would recommend", prompts, provider)   # single pair
+```
+
+- **Any data frame:** pick columns by name or number. With two columns, or columns
+  named `text` / `recommendation`, they're found automatically.
+- **Output:** a `.csv` in `0_Data/ai_prompter/` (git-ignored), written row by row, with
+  both responses, a status (`ok` / `truncated` / `error`), errors and token counts.
+  `write_results()` also saves `.txt` transcripts, `.rds`, or `.arrow` / `.parquet`
+  (needs the `arrow` package).
+- **Robust to running out of tokens and limits:**
+  - replies cut off by `max_tokens` are continued automatically;
+  - rate limits and server errors are retried with back-off;
+  - out of credits / quota, or a bad API key, stops the run cleanly, and rerunning the
+    same call resumes where it stopped;
+  - conversations too long for the model are flagged per row, or trimmed in
+    `conversation = "continuous"` mode.
+- **Options:** `priming_as = "system"` sends the priming as a system prompt instead of
+  a message; `conversation = "continuous"` keeps one conversation across all rows
+  instead of a fresh one per row; `delay` pauses between requests.
+
+Default models are set in `2_AIPrompter/1_Functions/config.R`; check them against
+each provider's current model list.
+
 ## Documentation
 
 Detailed docs (code structure, dependencies, one page per script and function) are in
@@ -119,5 +171,13 @@ ai_learning.Rproj               # RStudio project (sets working directory to the
     download_imdb.R             # IMDB 50K downloader (Kaggle)
     load_data.R                 # loaders into data frames
     utils.R                     # download, size lookup, prompt and argument helpers
+2_AIPrompter/
+  run_prompter.R                # entry point: set model, prompts and data, then run
+  1_Functions/
+    config.R                    # default models, API key variables, retry settings
+    providers.R                 # Claude / ChatGPT / Gemini / mock adapters, error types
+    llm_call.R                  # one LLM call with retries and continuation
+    prompter.R                  # run_prompter(), prompt_one(), prompter_prompts()
+    output.R                    # read_results(), write_results()
 wiki/                           # GitHub wiki pages (see Documentation)
 ```
