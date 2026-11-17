@@ -17,3 +17,15 @@ kaggle.json
 Thumbs.db
 .vscode/
 .idea/
+
+# --- LaTeX build files (docs/slides) ---
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+*.fls
+*.fdb_latexmk
+*.synctex.gz
