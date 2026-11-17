@@ -105,6 +105,7 @@ ai_learning/
 % ---------------------------------------------------------------------------
 \begin{frame}{2. AI prompter: the conversation}
   \centering
+  \resizebox{0.9\textwidth}{!}{%
   \begin{tikzpicture}[
       box/.style={draw=accent, fill=soft, rounded corners=3pt, minimum height=8mm,
                   align=center, font=\small, inner sep=4pt},
@@ -121,9 +122,9 @@ ai_learning/
     \draw[arr] (p2) -- (r2);
     \node[draw=accent, dashed, rounded corners, fit=(p1)(r2), inner sep=6pt,
           label={[font=\small, text=accent]below:for each row of the data frame}] {};
-    \node[box, below=16mm of r2] (csv) {\code{.csv}\\saved row by row};
+    \node[box, below=12mm of r2] (csv) {\code{.csv}\\saved row by row};
     \draw[arr] (r2.south) -- (csv.north);
-  \end{tikzpicture}
+  \end{tikzpicture}}
   \vfill
   \begin{itemize}\small
     \item Any data frame: columns by name or number; one pair with \code{prompt\_one()}
